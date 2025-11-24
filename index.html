@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reserva tu Turno | Estudio Jurídico</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <h1>Agenda tu Cita</h1>
+            <p>Selecciona el día y horario que mejor te convenga.</p>
+        </header>
+
+        <main class="main-content">
+            <section class="selection-area">
+                <div class="date-selector">
+                    <div class="month-navigation">
+                        <button id="prev-month" class="nav-btn">&lt;</button>
+                        <h2 id="current-month">Noviembre 2023</h2>
+                        <button id="next-month" class="nav-btn">&gt;</button>
+                    </div>
+                    <div id="days-container" class="calendar-grid">
+                        <!-- Days will be injected here by JS -->
+                    </div>
+                </div>
+
+                <div class="time-selector hidden" id="time-selector">
+                    <h2>2. Elige un horario</h2>
+                    <div id="slots-container" class="slots-grid">
+                        <!-- Slots will be injected here by JS -->
+                    </div>
+                </div>
+            </section>
+
+            <section class="form-area hidden" id="form-area">
+                <h2>3. Tus Datos</h2>
+                <form id="booking-form">
+                    <div class="form-group">
+                        <label for="name">Nombre Completo</label>
+                        <input type="text" id="name" name="name" required placeholder="Ej. Juan Pérez">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required placeholder="juan@ejemplo.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Teléfono</label>
+                        <input type="tel" id="phone" name="phone" required placeholder="+54 11 1234 5678">
+                    </div>
+                    
+                    <div class="summary-card">
+                        <h3>Resumen</h3>
+                        <p id="summary-text">Selecciona fecha y hora...</p>
+                    </div>
+
+                    <button type="submit" class="btn-submit">Confirmar Reserva</button>
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <div id="toast" class="toast hidden">¡Turno reservado con éxito!</div>
+
+    <script src="app.js"></script>
+</body>
+</html>
