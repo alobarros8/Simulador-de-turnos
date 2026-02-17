@@ -1,0 +1,232 @@
+---
+// ===========================================
+// FRONTMATTER (Código ejecutado en el servidor)
+// ===========================================
+// Este código se ejecuta SOLO en el servidor durante la compilación
+// No es visible en el HTML final (es seguro para datos sensibles)
+
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import Tarjeta from '../components/Tarjeta.astro';
+import { SITE_TITLE } from '../consts';
+
+// Variables que podemos usar en la página
+const titulo = 'Página de Experimentos';
+const descripcion = 'Aquí aprendemos los conceptos básicos de Astro';
+
+// Arrays para iterar
+const caracteristicas = [
+	{
+		icono: '⚡',
+		titulo: 'Rápido',
+		descripcion: 'Astro usa generación estática por defecto'
+	},
+	{
+		icono: '🎨',
+		titulo: 'Flexible',
+		descripcion: 'Usa cualquier framework: React, Vue, Svelte...'
+	},
+	{
+		icono: '📚',
+		titulo: 'Fácil',
+		descripcion: 'Sintaxis simple basada en HTML y JavaScript'
+	}
+];
+
+// Funciones del servidor (ejecutadas solo en compilación)
+function obtenerFecha() {
+	return new Date().toLocaleDateString('es-ES');
+}
+
+function sumar(a: number, b: number) {
+	return a + b;
+}
+---
+
+<!doctype html>
+<html lang="es">
+	<head>
+		<BaseHead title={`${titulo} | ${SITE_TITLE}`} description={descripcion} />
+	</head>
+	<body>
+		<Header />
+		
+		<main>
+			<!-- ====== SECCIÓN 1: Interpolación básica ====== -->
+			<section style="margin: 2rem 0; padding: 2rem; border: 1px solid #ccc;">
+				<h1>✨ {titulo}</h1>
+				<p>{descripcion}</p>
+				<p>📅 Fecha actual: <strong>{obtenerFecha()}</strong></p>
+				<p>➕ 5 + 3 = <strong>{sumar(5, 3)}</strong></p>
+				
+				<details style="margin-top: 1rem;">
+					<summary>¿Qué está sucediendo aquí?</summary>
+					<pre><code>{`
+// Las variables se interpolan con {}
+const titulo = 'Página de Experimentos';
+<h1>{titulo}</h1>
+
+// Puedes ejecutar functions en la interpolación
+<p>{obtenerFecha()}</p>
+
+// Todo esto se ejecuta en el SERVIDOR
+// El navegador solo recibe HTML puro
+					`}</code></pre>
+				</details>
+			</section>
+
+			<!-- ====== SECCIÓN 2: Iteración con .map() ====== -->
+			<section style="margin: 2rem 0; padding: 2rem; border: 1px solid #ccc;">
+				<h2>🔄 Iteración - Características de Astro</h2>
+				<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+					{caracteristicas.map((cara) => (
+						<Tarjeta 
+							icono={cara.icono}
+							titulo={cara.titulo}
+							descripcion={cara.descripcion}
+						/>
+					))}
+				</div>
+
+				<details style="margin-top: 1rem;">
+					<summary>¿Cómo funciona la iteración?</summary>
+					<pre><code>{`
+// En Astro usamos .map() para iterar
+const caracteristicas = [
+  { icono: '⚡', titulo: 'Rápido', descripcion: '...' },
+  ...
+];
+
+{caracteristicas.map((cara) => (
+  <Tarjeta 
+    icono={cara.icono}
+    titulo={cara.titulo}
+    descripcion={cara.descripcion}
+  />
+))}
+
+// Cada item se pasa como prop al componente
+					`}</code></pre>
+				</details>
+			</section>
+
+			<!-- ====== SECCIÓN 3: Condicionales ====== -->
+			<section style="margin: 2rem 0; padding: 2rem; border: 1px solid #ccc;">
+				<h2>❓ Condicionales (if/else)</h2>
+				
+				{sumar(5, 3) > 5 && (
+					<div style="background: #d4edda; padding: 1rem; border-radius: 4px;">
+						✅ ¡La suma es mayor que 5! (8 > 5)
+					</div>
+				)}
+
+				{sumar(2, 2) === 4 ? (
+					<div style="background: #cce5ff; padding: 1rem; border-radius: 4px; margin-top: 1rem;">
+						✓ 2 + 2 es exactamente igual a 4
+					</div>
+				) : (
+					<div style="background: #f8d7da; padding: 1rem; border-radius: 4px; margin-top: 1rem;">
+						✗ 2 + 2 no es igual a 4
+					</div>
+				)}
+
+				<details style="margin-top: 1rem;">
+					<summary>Sintaxis de condicionales</summary>
+					<pre><code>{`
+// Usando &&
+{condicion && <div>Se muestra si es verdadero</div>}
+
+// Usando operador ternario ?:
+{condicion ? <div>Verdadero</div> : <div>Falso</div>}
+
+// Todo el JavaScript normal funciona en Astro
+					`}</code></pre>
+				</details>
+			</section>
+
+			<!-- ====== SECCIÓN 4: Información técnica ====== -->
+			<section style="margin: 2rem 0; padding: 2rem; border: 1px solid #ccc; background: #f5f5f5;">
+				<h2>🔬 Información Técnica</h2>
+				<ul>
+					<li><strong>URL actual:</strong> {Astro.url.pathname}</li>
+					<li><strong>Modo:</strong> Generación estática (SSG)</li>
+					<li><strong>TypeScript:</strong> Soportado (puedes usar tipos)</li>
+					<li><strong>Imports:</strong> Puedes importar componentes, estilos, datos...</li>
+				</ul>
+
+				<details style="margin-top: 1rem;">
+					<summary>¿Qué es Astro.url?</summary>
+					<pre><code>{`
+// Astro proporciona un objeto global 'Astro'
+// Contiene información del contexto actual
+
+Astro.url.pathname    // La ruta actual
+Astro.site            // URL base del sitio
+Astro.props           // Props pasadas al componente
+Astro.request         // Información de la request
+					`}</code></pre>
+				</details>
+			</section>
+
+			<!-- ====== SECCIÓN 5: Links de navegación ====== -->
+			<section style="margin: 2rem 0; padding: 2rem; border: 1px solid #ccc; text-align: center;">
+				<h2>🗺️ Navegación</h2>
+				<p>
+					<a href="/" style="margin: 0 1rem; text-decoration: none; color: #0066cc;">← Volver a inicio</a>
+					<a href="/experimentos" style="margin: 0 1rem; text-decoration: none; color: #0066cc;">Estás aquí</a>
+				</p>
+			</section>
+		</main>
+
+		<Footer />
+	</body>
+</html>
+
+<style>
+	main {
+		max-width: 1000px;
+		margin: 0 auto;
+		padding: 2rem;
+	}
+
+	section {
+		animation: fadeIn 0.5s ease-in;
+	}
+
+	@keyframes fadeIn {
+		from {
+			opacity: 0;
+			transform: translateY(10px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	details {
+		cursor: pointer;
+		user-select: none;
+	}
+
+	details summary {
+		color: #0066cc;
+		font-weight: bold;
+		padding: 0.5rem;
+		border-left: 3px solid #0066cc;
+		padding-left: 1rem;
+	}
+
+	pre {
+		background: #f4f4f4;
+		padding: 1rem;
+		border-radius: 4px;
+		overflow-x: auto;
+		font-size: 0.9rem;
+	}
+
+	code {
+		font-family: 'Courier New', monospace;
+	}
+</style>

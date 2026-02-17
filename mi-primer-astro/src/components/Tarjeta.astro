@@ -1,0 +1,57 @@
+---
+// ===========================================
+// COMPONENTE TARJETA
+// ===========================================
+// Los componentes Astro son archivos .astro que aceptan props
+// Pueden ser reutilizados en múltiples páginas
+
+// Define las props que el componente acepta
+interface Props {
+	icono: string;
+	titulo: string;
+	descripcion: string;
+}
+
+// Destructura las props del objeto Astro.props
+const { icono, titulo, descripcion } = Astro.props;
+---
+
+<!-- El HTML del componente -->
+<div class="tarjeta">
+	<div class="icono">{icono}</div>
+	<h3>{titulo}</h3>
+	<p>{descripcion}</p>
+</div>
+
+<style>
+	/* Los estilos son SCOPED por defecto (solo afectan este componente) */
+	.tarjeta {
+		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		color: white;
+		padding: 1.5rem;
+		border-radius: 8px;
+		box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+		transition: all 0.3s ease;
+	}
+
+	.tarjeta:hover {
+		transform: translateY(-5px);
+		box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+	}
+
+	.icono {
+		font-size: 3rem;
+		margin-bottom: 0.5rem;
+	}
+
+	h3 {
+		margin: 0.5rem 0;
+		font-size: 1.3rem;
+	}
+
+	p {
+		margin: 0;
+		opacity: 0.95;
+		line-height: 1.5;
+	}
+</style>

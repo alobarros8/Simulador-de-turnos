@@ -1,0 +1,370 @@
+---
+// ============================================
+// PÁGINA DE LOGIN
+// ============================================
+// Acceso al sistema para el equipo de soporte
+
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { SITE_TITLE } from '../consts';
+import { verificarLogin } from '../lib/bd';
+import { crearSesion } from '../lib/sesion';
+
+// Habilitar SSR (necesario para procesar formularios)
+export const prerender = false;
+
+const titulo = 'Acceso - Sistema de Soporte';
+const descripcion = 'Ingresa con tu cuenta del equipo';
+
+let error = '';
+let exito = false;
+
+// Procesar el formulario de login
+if (Astro.request.method === 'POST') {
+	try {
+		const datos = await Astro.request.formData();
+		const email = datos.get('email')?.toString() || '';
+		const contrasena = datos.get('contrasena')?.toString() || '';
+
+		const usuario = verificarLogin(email, contrasena);
+
+		if (usuario) {
+			// Crear sesión
+			crearSesion(usuario, Astro.cookies);
+
+			// Redirigir al dashboard
+			return Astro.redirect('/dashboard');
+		} else {
+			error = '❌ Email o contraseña incorrectos';
+		}
+	} catch (err) {
+		error = '❌ Error al procesar el login';
+		console.error(err);
+	}
+}
+---
+
+<!doctype html>
+<html lang="es">
+	<head>
+		<BaseHead title={titulo} description={descripcion} />
+	</head>
+	<body>
+		<Header />
+
+		<main class="contenedor-login">
+			<div class="caja-login">
+				<div class="encabezado">
+					<h1>🔐 Sistema de Soporte Técnico</h1>
+					<p>Acceso para el equipo</p>
+				</div>
+
+				{error && (
+					<div class="alerta-error">
+						{error}
+					</div>
+				)}
+
+				<form method="POST" class="formulario-login">
+					<div class="campo">
+						<label for="email">📧 Correo Electrónico</label>
+						<input
+							type="email"
+							id="email"
+							name="email"
+							placeholder="tu@email.com"
+							required
+						/>
+						<small>Ejemplo: alejandro@soporte.com</small>
+					</div>
+
+					<div class="campo">
+						<label for="contrasena">🔑 Contraseña</label>
+						<input
+							type="password"
+							id="contrasena"
+							name="contrasena"
+							placeholder="Tu contraseña"
+							required
+						/>
+						<small>Ejemplo: 123456</small>
+					</div>
+
+					<button type="submit" class="btn-login">
+						Iniciar Sesión
+					</button>
+				</form>
+
+				<!-- Información de ejemplo -->
+				<div class="info-ejemplos">
+					<h3>👥 Usuarios de Demostración</h3>
+					<table>
+						<thead>
+							<tr>
+								<th>Rol</th>
+								<th>Email</th>
+								<th>Contraseña</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>👨 Admin (Tú)</td>
+								<td><code>alejandro@soporte.com</code></td>
+								<td><code>123456</code></td>
+							</tr>
+							<tr>
+								<td>💼 Presupuestador</td>
+								<td><code>maria@soporte.com</code></td>
+								<td><code>123456</code></td>
+							</tr>
+							<tr>
+								<td>🔧 Técnico</td>
+								<td><code>carlos@soporte.com</code></td>
+								<td><code>123456</code></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+
+				<div class="info-seccion">
+					<h3>ℹ️ ¿Qué es esto?</h3>
+					<p>
+						Este sistema permite al equipo de soporte:
+					</p>
+					<ul>
+						<li>👁️ Ver todos los tickets de clientes</li>
+						<li>🔍 Buscar problemas similares anteriores</li>
+						<li>💵 Proporcionar presupuestos</li>
+						<li>🔧 Delegar y resolver problemas</li>
+						<li>📊 Hacer seguimiento del estado</li>
+					</ul>
+				</div>
+			</div>
+		</main>
+
+		<Footer />
+	</body>
+</html>
+
+<style>
+	main {
+		flex: 1;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 2rem;
+		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		min-height: calc(100vh - 200px);
+	}
+
+	.contenedor-login {
+		width: 100%;
+		max-width: 500px;
+	}
+
+	.caja-login {
+		background: white;
+		border-radius: 12px;
+		box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+		overflow: hidden;
+	}
+
+	.encabezado {
+		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		color: white;
+		padding: 2rem;
+		text-align: center;
+	}
+
+	.encabezado h1 {
+		margin: 0 0 0.5rem 0;
+		font-size: 1.8rem;
+	}
+
+	.encabezado p {
+		margin: 0;
+		opacity: 0.9;
+	}
+
+	.alerta-error {
+		background: #f8d7da;
+		border-left: 4px solid #dc3545;
+		color: #721c24;
+		padding: 1rem;
+		margin: 1rem;
+		border-radius: 4px;
+		animation: shake 0.5s ease;
+	}
+
+	@keyframes shake {
+		0%, 100% {
+			transform: translateX(0);
+		}
+		25% {
+			transform: translateX(-5px);
+		}
+		75% {
+			transform: translateX(5px);
+		}
+	}
+
+	.formulario-login {
+		padding: 2rem;
+	}
+
+	.campo {
+		margin-bottom: 1.5rem;
+		display: flex;
+		flex-direction: column;
+	}
+
+	label {
+		font-weight: 600;
+		color: #333;
+		margin-bottom: 0.5rem;
+	}
+
+	input {
+		padding: 0.8rem;
+		border: 2px solid #ddd;
+		border-radius: 6px;
+		font-size: 1rem;
+		transition: all 0.3s ease;
+	}
+
+	input:focus {
+		outline: none;
+		border-color: #667eea;
+		box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+		background: #f8fbff;
+	}
+
+	small {
+		font-size: 0.85rem;
+		color: #7f8c8d;
+		margin-top: 0.3rem;
+	}
+
+	.btn-login {
+		width: 100%;
+		padding: 1rem;
+		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		color: white;
+		border: none;
+		border-radius: 6px;
+		font-size: 1.1rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 0.3s ease;
+		box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+	}
+
+	.btn-login:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+	}
+
+	.btn-login:active {
+		transform: translateY(0);
+	}
+
+	.info-ejemplos {
+		background: #f0f7ff;
+		padding: 1.5rem;
+		border-top: 2px solid #ddd;
+	}
+
+	.info-ejemplos h3 {
+		margin: 0 0 1rem 0;
+		color: #667eea;
+		font-size: 1.1rem;
+	}
+
+	table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.9rem;
+	}
+
+	thead {
+		background: #667eea;
+		color: white;
+	}
+
+	th {
+		padding: 0.8rem;
+		text-align: left;
+		font-weight: 600;
+	}
+
+	td {
+		padding: 0.8rem;
+		border-bottom: 1px solid #ddd;
+	}
+
+	tbody tr:hover {
+		background: white;
+	}
+
+	code {
+		background: #f4f4f4;
+		padding: 0.2rem 0.4rem;
+		border-radius: 3px;
+		font-family: monospace;
+		color: #e74c3c;
+	}
+
+	.info-seccion {
+		background: #fffacd;
+		padding: 1.5rem;
+		border-top: 2px solid #ffc107;
+	}
+
+	.info-seccion h3 {
+		margin: 0 0 0.8rem 0;
+		color: #856404;
+	}
+
+	.info-seccion p {
+		margin: 0 0 0.8rem 0;
+		color: #856404;
+	}
+
+	.info-seccion ul {
+		margin: 0;
+		padding-left: 1.5rem;
+		color: #856404;
+	}
+
+	.info-seccion li {
+		margin-bottom: 0.4rem;
+	}
+
+	@media (max-width: 600px) {
+		.caja-login {
+			margin: 0;
+		}
+
+		.encabezado {
+			padding: 1.5rem;
+		}
+
+		.encabezado h1 {
+			font-size: 1.5rem;
+		}
+
+		.formulario-login {
+			padding: 1.5rem;
+		}
+
+		table {
+			font-size: 0.8rem;
+		}
+
+		th,
+		td {
+			padding: 0.5rem;
+		}
+	}
+</style>

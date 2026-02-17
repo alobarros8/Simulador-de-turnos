@@ -1,0 +1,459 @@
+---
+// ============================================
+// PÁGINA: MIS TICKETS
+// ============================================
+// Tickets asignados al usuario actual
+
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { SITE_TITLE } from '../consts';
+import { bd } from '../lib/bd';
+import { obtenerSesion } from '../lib/sesion';
+
+export const prerender = false;
+
+// Verificar sesión
+const sesion = obtenerSesion(Astro.cookies);
+if (!sesion) {
+	return Astro.redirect('/login');
+}
+
+const usuario = sesion.usuario;
+const misTickets = bd.listarTicketsDelUsuario(usuario.id);
+
+// Filtro por estado
+const estado = Astro.url.searchParams.get('estado') || 'todos';
+const ticketsFiltrados =
+	estado === 'todos' ? misTickets : misTickets.filter((t) => t.estado === estado);
+
+const coloresEstado: Record<string, string> = {
+	nuevo: '🆕 Nuevo',
+	'en-revision': '👀 En revisión',
+	'presupuestando': '💵 Presupuestando',
+	'resolviendo': '🔧 Resolviendo',
+	'resuelto': '✅ Resuelto',
+	'cerrado': '📁 Cerrado',
+};
+---
+
+<!doctype html>
+<html lang="es">
+	<head>
+		<BaseHead title={`Mis Tickets | ${SITE_TITLE}`} description="Tickets asignados a ti" />
+	</head>
+	<body>
+		<Header />
+
+		<main class="contenedor">
+			<div class="encabezado">
+				<div>
+					<h1>📋 Mis Tickets</h1>
+					<p>Tickets asignados a {usuario.nombre}</p>
+				</div>
+				<a href="/dashboard" class="btn-link">
+					← Volver al Dashboard
+				</a>
+			</div>
+
+			<!-- Filtros -->
+			<div class="filtros">
+				<a href="/mis-tickets" class={`filtro ${estado === 'todos' ? 'activo' : ''}`}>
+					Todos ({misTickets.length})
+				</a>
+				<a href="/mis-tickets?estado=nuevo" class={`filtro ${estado === 'nuevo' ? 'activo' : ''}`}>
+					Nuevos ({misTickets.filter((t) => t.estado === 'nuevo').length})
+				</a>
+				<a href="/mis-tickets?estado=en-revision" class={`filtro ${estado === 'en-revision' ? 'activo' : ''}`}>
+					En revisión ({misTickets.filter((t) => t.estado === 'en-revision').length})
+				</a>
+				<a href="/mis-tickets?estado=presupuestando" class={`filtro ${estado === 'presupuestando' ? 'activo' : ''}`}>
+					Presupuestando ({misTickets.filter((t) => t.estado === 'presupuestando').length})
+				</a>
+				<a href="/mis-tickets?estado=resolviendo" class={`filtro ${estado === 'resolviendo' ? 'activo' : ''}`}>
+					Resolviendo ({misTickets.filter((t) => t.estado === 'resolviendo').length})
+				</a>
+				<a href="/mis-tickets?estado=resuelto" class={`filtro ${estado === 'resuelto' ? 'activo' : ''}`}>
+					Resueltos ({misTickets.filter((t) => t.estado === 'resuelto').length})
+				</a>
+			</div>
+
+			<!-- Tickets -->
+			{ticketsFiltrados.length === 0 ? (
+				<div class="sin-tickets">
+					<p>✨ No hay tickets en esta categoría</p>
+				</div>
+			) : (
+				<div class="lista-tickets">
+					{ticketsFiltrados.map((ticket) => (
+						<a href={`/tickets/${ticket.id}`} class="ticket-card">
+							<div class="ticket-cabecera">
+								<h3>{ticket.titulo}</h3>
+								<span class={`badge estado-${ticket.estado}`}>
+									{coloresEstado[ticket.estado]}
+								</span>
+							</div>
+
+							<p class="ticket-descripcion">
+								{ticket.descripcion.substring(0, 120)}...
+							</p>
+
+							<div class="ticket-pie">
+								<div class="cliente-info">
+									<strong>{ticket.cliente?.nombre}</strong>
+									<small>{ticket.cliente?.email}</small>
+								</div>
+
+								<div class="ticket-meta">
+									<span class={`prioridad prioridad-${ticket.prioridad}`}>
+										{ticket.prioridad}
+									</span>
+									<span class="categoria">{ticket.categoria}</span>
+									{ticket.asignadoA && <span class="asignado">✓ Asignado</span>}
+								</div>
+							</div>
+
+							<div class="ticket-fecha">
+								{new Date(ticket.fechaCreacion).toLocaleDateString('es-ES')}
+							</div>
+						</a>
+					))}
+				</div>
+			)}
+
+			<!-- Sección informativa -->
+			<section class="info-seccion">
+				<h3>💡 Tu Panel de Tickets</h3>
+				<div class="info-contenido">
+					<div class="info-item">
+						<strong>Rol:</strong>
+						<span>
+							{usuario.rol === 'admin' && '👨 Admin'}
+							{usuario.rol === 'presupuestador' && '💼 Presupuestador'}
+							{usuario.rol === 'tecnico' && '🔧 Técnico'}
+						</span>
+					</div>
+					<div class="info-item">
+						<strong>Total de tickets:</strong>
+						<span>{misTickets.length}</span>
+					</div>
+					<div class="info-item">
+						<strong>Pendientes:</strong>
+						<span>
+							{misTickets.filter((t) => t.estado !== 'resuelto' && t.estado !== 'cerrado').length}
+						</span>
+					</div>
+					<div class="info-item">
+						<strong>Resueltos:</strong>
+						<span>{misTickets.filter((t) => t.estado === 'resuelto').length}</span>
+					</div>
+				</div>
+			</section>
+		</main>
+
+		<Footer />
+	</body>
+</html>
+
+<style>
+	.contenedor {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 2rem;
+	}
+
+	.encabezado {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 2rem;
+	}
+
+	.encabezado h1 {
+		margin: 0 0 0.5rem 0;
+		color: #333;
+	}
+
+	.encabezado p {
+		margin: 0;
+		color: #666;
+	}
+
+	.btn-link {
+		padding: 0.8rem 1.5rem;
+		background: #667eea;
+		color: white;
+		text-decoration: none;
+		border-radius: 6px;
+		transition: all 0.3s ease;
+	}
+
+	.btn-link:hover {
+		background: #5568d3;
+		transform: translateY(-2px);
+	}
+
+	.filtros {
+		display: flex;
+		gap: 0.8rem;
+		flex-wrap: wrap;
+		margin-bottom: 2rem;
+		padding-bottom: 1rem;
+		border-bottom: 2px solid #ddd;
+	}
+
+	.filtro {
+		padding: 0.6rem 1.2rem;
+		background: #f0f0f0;
+		color: #333;
+		text-decoration: none;
+		border-radius: 20px;
+		transition: all 0.3s ease;
+		font-size: 0.9rem;
+		border: 1px solid #ddd;
+	}
+
+	.filtro:hover {
+		background: #e0e0e0;
+	}
+
+	.filtro.activo {
+		background: #667eea;
+		color: white;
+		border-color: #667eea;
+		font-weight: 600;
+	}
+
+	.lista-tickets {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+		gap: 1.5rem;
+		margin-bottom: 3rem;
+	}
+
+	.ticket-card {
+		background: white;
+		border-radius: 8px;
+		padding: 1.5rem;
+		border: 1px solid #ddd;
+		text-decoration: none;
+		color: inherit;
+		transition: all 0.3s ease;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+		display: flex;
+		flex-direction: column;
+	}
+
+	.ticket-card:hover {
+		box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+		transform: translateY(-5px);
+		border-color: #667eea;
+	}
+
+	.ticket-cabecera {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		gap: 1rem;
+		margin-bottom: 1rem;
+	}
+
+	.ticket-cabecera h3 {
+		margin: 0;
+		color: #333;
+		flex: 1;
+		line-height: 1.4;
+	}
+
+	.badge {
+		display: inline-block;
+		padding: 0.4rem 0.8rem;
+		border-radius: 20px;
+		font-size: 0.85rem;
+		font-weight: 600;
+		white-space: nowrap;
+	}
+
+	.estado-nuevo {
+		background: #cfe9ff;
+		color: #004085;
+	}
+	.estado-en-revision {
+		background: #fff3cd;
+		color: #856404;
+	}
+	.estado-presupuestando {
+		background: #e7d4f5;
+		color: #5a1d1d;
+	}
+	.estado-resolviendo {
+		background: #d1ecf1;
+		color: #0c5460;
+	}
+	.estado-resuelto {
+		background: #d4edda;
+		color: #155724;
+	}
+	.estado-cerrado {
+		background: #e2e3e5;
+		color: #383d41;
+	}
+
+	.ticket-descripcion {
+		color: #666;
+		margin: 0 0 1rem 0;
+		line-height: 1.5;
+		flex: 1;
+	}
+
+	.ticket-pie {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 1rem;
+		padding: 1rem 0;
+		border-top: 1px solid #eee;
+		border-bottom: 1px solid #eee;
+		margin-bottom: 1rem;
+	}
+
+	.cliente-info {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.cliente-info strong {
+		color: #333;
+		font-size: 0.9rem;
+	}
+
+	.cliente-info small {
+		color: #999;
+		font-size: 0.8rem;
+	}
+
+	.ticket-meta {
+		display: flex;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+		justify-content: flex-end;
+	}
+
+	.prioridad {
+		display: inline-block;
+		padding: 0.3rem 0.6rem;
+		border-radius: 4px;
+		font-size: 0.8rem;
+		font-weight: 600;
+		text-transform: capitalize;
+	}
+
+	.prioridad-baja {
+		background: #d1ecf1;
+		color: #0c5460;
+	}
+	.prioridad-media {
+		background: #fff3cd;
+		color: #856404;
+	}
+	.prioridad-alta,
+	.prioridad-urgente {
+		background: #f8d7da;
+		color: #721c24;
+	}
+
+	.categoria {
+		display: inline-block;
+		padding: 0.3rem 0.6rem;
+		background: #f0f0f0;
+		border-radius: 4px;
+		font-size: 0.8rem;
+		color: #666;
+		text-transform: capitalize;
+	}
+
+	.asignado {
+		display: inline-block;
+		padding: 0.3rem 0.6rem;
+		background: #d4edda;
+		color: #155724;
+		border-radius: 4px;
+		font-size: 0.8rem;
+		font-weight: 600;
+	}
+
+	.ticket-fecha {
+		color: #999;
+		font-size: 0.85rem;
+	}
+
+	.sin-tickets {
+		background: #f8f9fa;
+		padding: 4rem 2rem;
+		border-radius: 8px;
+		text-align: center;
+		color: #999;
+		font-size: 1.1rem;
+	}
+
+	.info-seccion {
+		background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+		padding: 2rem;
+		border-radius: 8px;
+	}
+
+	.info-seccion h3 {
+		margin-top: 0;
+		color: #333;
+	}
+
+	.info-contenido {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: 1.5rem;
+	}
+
+	.info-item {
+		background: white;
+		padding: 1rem;
+		border-radius: 6px;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.info-item strong {
+		color: #667eea;
+		margin-bottom: 0.5rem;
+	}
+
+	.info-item span {
+		color: #333;
+		font-size: 1.3rem;
+		font-weight: bold;
+	}
+
+	@media (max-width: 768px) {
+		.contenedor {
+			padding: 1rem;
+		}
+
+		.encabezado {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 1rem;
+		}
+
+		.lista-tickets {
+			grid-template-columns: 1fr;
+		}
+
+		.filtros {
+			gap: 0.5rem;
+		}
+
+		.filtro {
+			font-size: 0.85rem;
+			padding: 0.5rem 1rem;
+		}
+	}
+</style>

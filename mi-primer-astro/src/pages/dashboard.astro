@@ -1,0 +1,617 @@
+---
+// ============================================
+// PÁGINA DASHBOARD - VER TODOS LOS TICKETS
+// ============================================
+// Panel principal para el equipo de soporte
+
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { SITE_TITLE } from '../consts';
+import { bd } from '../lib/bd';
+import { obtenerSesion, destruirSesion } from '../lib/sesion';
+
+export const prerender = false;
+
+// Verificar que el usuario tenga sesión
+const sesion = obtenerSesion(Astro.cookies);
+
+if (!sesion) {
+	return Astro.redirect('/login');
+}
+
+const usuario = sesion.usuario;
+const tickets = bd.listarTickets();
+
+// Procesar logout
+if (Astro.request.method === 'POST') {
+	const datos = await Astro.request.formData();
+	if (datos.get('accion') === 'logout') {
+		destruirSesion(Astro.cookies);
+		return Astro.redirect('/login');
+	}
+}
+
+// Colores por estado
+const coloresEstado: Record<string, string> = {
+	nuevo: '🆕 Nuevo',
+	'en-revision': '👀 En revisión',
+	'presupuestando': '💵 Presupuestando',
+	'resolviendo': '🔧 Resolviendo',
+	'resuelto': '✅ Resuelto',
+	'cerrado': '📁 Cerrado',
+};
+
+const coloresProioridad: Record<string, string> = {
+	baja: '🟢',
+	media: '🟡',
+	alta: '🔴',
+	urgente: '🔴⚡',
+};
+---
+
+<!doctype html>
+<html lang="es">
+	<head>
+		<BaseHead title={`Dashboard | ${SITE_TITLE}`} description="Panel de control de soporte técnico" />
+	</head>
+	<body>
+		<Header />
+
+		<main class="dashboard">
+			<!-- Barra superior -->
+			<div class="barra-superior">
+				<div class="informacion-usuario">
+					<div class="avatar">
+						{usuario.nombre.charAt(0).toUpperCase()}
+					</div>
+					<div class="detalles-usuario">
+						<div class="nombre-usuario">{usuario.nombre}</div>
+						<div class="rol-usuario">
+							{usuario.rol === 'admin' && '👨 Admin'}
+							{usuario.rol === 'presupuestador' && '💼 Presupuestador'}
+							{usuario.rol === 'tecnico' && '🔧 Técnico'}
+						</div>
+					</div>
+				</div>
+
+				<form method="POST" class="formulario-logout">
+					<input type="hidden" name="accion" value="logout" />
+					<button type="submit" class="btn-logout">
+						Cerrar Sesión
+					</button>
+				</form>
+			</div>
+
+			<!-- Contenido principal -->
+			<div class="contenedor-principal">
+				<!-- Sidebar -->
+				<aside class="sidebar">
+					<nav class="menu">
+						<a href="/dashboard" class="menu-item activo">
+							📊 Dashboard
+						</a>
+						<a href="/tickets/crear" class="menu-item">
+							➕ Nuevo Ticket
+						</a>
+						<a href="/mis-tickets" class="menu-item">
+							👤 Mis Tickets ({bd.listarTicketsDelUsuario(usuario.id).length})
+						</a>
+					</nav>
+
+					<div class="estadisticas">
+						<h3>📈 Estadísticas</h3>
+						<div class="stat">
+							<div class="numero">{tickets.filter((t) => t.estado === 'nuevo').length}</div>
+							<div class="label">Nuevos</div>
+						</div>
+						<div class="stat">
+							<div class="numero">{tickets.filter((t) => t.estado === 'en-revision').length}</div>
+							<div class="label">En revisión</div>
+						</div>
+						<div class="stat">
+							<div class="numero">{tickets.filter((t) => t.estado === 'resuelto').length}</div>
+							<div class="label">Resueltos</div>
+						</div>
+					</div>
+				</aside>
+
+				<!-- Contenido -->
+				<section class="contenido">
+					<div class="encabezado-contenido">
+						<h1>📋 Todos los Tickets ({tickets.length})</h1>
+						<p>Gestiona y delega problemas de clientes</p>
+					</div>
+
+					{tickets.length === 0 ? (
+						<div class="sin-tickets">
+							<p>✨ No hay tickets en el sistema</p>
+						</div>
+					) : (
+						<div class="tabla-tickets">
+							<div class="tabla-encabezado">
+								<div class="col-id">ID</div>
+								<div class="col-cliente">Cliente</div>
+								<div class="col-titulo">Título</div>
+								<div class="col-estado">Estado</div>
+								<div class="col-prioridad">Prioridad</div>
+								<div class="col-acciones">Acciones</div>
+							</div>
+
+							{tickets.map((ticket) => (
+								<div class="tabla-fila">
+									<div class="col-id">
+										<code>{ticket.id.slice(0, 8)}</code>
+									</div>
+									<div class="col-cliente">
+										<div class="cliente-info">
+											<div class="cliente-nombre">{ticket.cliente?.nombre || 'Desconocido'}</div>
+											<small>{ticket.cliente?.email}</small>
+										</div>
+									</div>
+									<div class="col-titulo">
+										<a href={`/tickets/${ticket.id}`} class="titulo-ticket">
+											{ticket.titulo}
+										</a>
+										<small>{ticket.categoria}</small>
+									</div>
+									<div class="col-estado">
+										<span class={`badge estado-${ticket.estado}`}>
+											{coloresEstado[ticket.estado]}
+										</span>
+									</div>
+									<div class="col-prioridad">
+										<span class={`badge prioridad-${ticket.prioridad}`}>
+											{coloresProioridad[ticket.prioridad]} {ticket.prioridad}
+										</span>
+									</div>
+									<div class="col-acciones">
+										<a href={`/tickets/${ticket.id}`} class="btn-pequeño btn-ver">
+											Ver
+										</a>
+									</div>
+								</div>
+							))}
+						</div>
+					)}
+
+					<!-- Sección informativa -->
+					<div class="info-dashboard">
+						<h3>💡 ¿Cómo funciona el sistema?</h3>
+						<div class="pasos">
+							<div class="paso">
+								<div class="numero">1️⃣</div>
+								<div class="contenido">
+									<strong>Cliente reporta problema</strong>
+									<p>Llena el formulario con sus datos y detalles del problema</p>
+								</div>
+							</div>
+							<div class="paso">
+								<div class="numero">2️⃣</div>
+								<div class="contenido">
+									<strong>Tú revisas</strong>
+									<p>Ves el ticket, buscas similares, decides quién lo resuelve</p>
+								</div>
+							</div>
+							<div class="paso">
+								<div class="numero">3️⃣</div>
+								<div class="contenido">
+									<strong>Delegas</strong>
+									<p>Si es presupuesto → María. Si es técnico → Carlos</p>
+								</div>
+							</div>
+							<div class="paso">
+								<div class="numero">4️⃣</div>
+								<div class="contenido">
+									<strong>Se resuelve</strong>
+									<p>El responsable resuelve y cierra el ticket</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
+			</div>
+		</main>
+
+		<Footer />
+	</body>
+</html>
+
+<style>
+	.dashboard {
+		display: flex;
+		flex-direction: column;
+		min-height: calc(100vh - 100px);
+	}
+
+	.barra-superior {
+		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		color: white;
+		padding: 1.5rem;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	}
+
+	.informacion-usuario {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+	}
+
+	.avatar {
+		width: 50px;
+		height: 50px;
+		border-radius: 50%;
+		background: rgba(255, 255, 255, 0.3);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-weight: bold;
+		font-size: 1.5rem;
+	}
+
+	.nombre-usuario {
+		font-weight: 600;
+		font-size: 1.1rem;
+	}
+
+	.rol-usuario {
+		font-size: 0.9rem;
+		opacity: 0.9;
+	}
+
+	.btn-logout {
+		padding: 0.8rem 1.5rem;
+		background: rgba(255, 255, 255, 0.2);
+		border: 1px solid rgba(255, 255, 255, 0.4);
+		color: white;
+		border-radius: 6px;
+		cursor: pointer;
+		font-weight: 600;
+		transition: all 0.3s ease;
+	}
+
+	.btn-logout:hover {
+		background: rgba(255, 255, 255, 0.3);
+		border-color: white;
+	}
+
+	.contenedor-principal {
+		display: flex;
+		flex: 1;
+		overflow: hidden;
+	}
+
+	.sidebar {
+		width: 250px;
+		background: #f8f9fa;
+		border-right: 1px solid #ddd;
+		padding: 1.5rem;
+		overflow-y: auto;
+	}
+
+	.menu {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		margin-bottom: 2rem;
+	}
+
+	.menu-item {
+		padding: 0.8rem 1rem;
+		border-radius: 6px;
+		color: #333;
+		text-decoration: none;
+		transition: all 0.3s ease;
+		border-left: 3px solid transparent;
+	}
+
+	.menu-item:hover,
+	.menu-item.activo {
+		background: white;
+		border-left-color: #667eea;
+		color: #667eea;
+		font-weight: 600;
+	}
+
+	.estadisticas {
+		background: white;
+		padding: 1.5rem;
+		border-radius: 8px;
+		border: 1px solid #ddd;
+	}
+
+	.estadisticas h3 {
+		margin: 0 0 1rem 0;
+		color: #333;
+		font-size: 1rem;
+	}
+
+	.stat {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		padding: 0.8rem 0;
+		border-bottom: 1px solid #eee;
+	}
+
+	.stat:last-child {
+		border-bottom: none;
+	}
+
+	.numero {
+		font-size: 1.8rem;
+		font-weight: bold;
+		color: #667eea;
+		min-width: 40px;
+	}
+
+	.label {
+		font-size: 0.9rem;
+		color: #666;
+	}
+
+	.contenido {
+		flex: 1;
+		padding: 2rem;
+		overflow-y: auto;
+	}
+
+	.encabezado-contenido h1 {
+		margin: 0 0 0.5rem 0;
+		color: #333;
+	}
+
+	.encabezado-contenido p {
+		color: #666;
+		margin: 0 0 2rem 0;
+	}
+
+	.tabla-tickets {
+		background: white;
+		border-radius: 8px;
+		border: 1px solid #ddd;
+		overflow: hidden;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+	}
+
+	.tabla-encabezado {
+		display: grid;
+		grid-template-columns: 80px 1fr 2fr 140px 140px 100px;
+		gap: 1rem;
+		padding: 1rem;
+		background: #f8f9fa;
+		border-bottom: 2px solid #ddd;
+		font-weight: 600;
+		color: #333;
+		position: sticky;
+		top: 0;
+	}
+
+	.tabla-fila {
+		display: grid;
+		grid-template-columns: 80px 1fr 2fr 140px 140px 100px;
+		gap: 1rem;
+		padding: 1rem;
+		border-bottom: 1px solid #eee;
+		align-items: center;
+		transition: background 0.2s ease;
+	}
+
+	.tabla-fila:hover {
+		background: #f8fbff;
+	}
+
+	.col-id code {
+		background: #f4f4f4;
+		padding: 0.3rem 0.6rem;
+		border-radius: 4px;
+		font-size: 0.85rem;
+		color: #667eea;
+	}
+
+	.cliente-info {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.cliente-nombre {
+		font-weight: 600;
+		color: #333;
+	}
+
+	.cliente-info small {
+		font-size: 0.85rem;
+		color: #999;
+	}
+
+	.titulo-ticket {
+		color: #667eea;
+		text-decoration: none;
+		font-weight: 500;
+		display: block;
+		margin-bottom: 0.3rem;
+	}
+
+	.titulo-ticket:hover {
+		text-decoration: underline;
+	}
+
+	.titulo-ticket + small {
+		font-size: 0.85rem;
+		color: #999;
+		text-transform: capitalize;
+	}
+
+	.badge {
+		display: inline-block;
+		padding: 0.4rem 0.8rem;
+		border-radius: 20px;
+		font-size: 0.85rem;
+		font-weight: 600;
+		text-align: center;
+		white-space: nowrap;
+	}
+
+	.estado-nuevo {
+		background: #cfe9ff;
+		color: #004085;
+	}
+	.estado-en-revision {
+		background: #fff3cd;
+		color: #856404;
+	}
+	.estado-presupuestando {
+		background: #e7d4f5;
+		color: #5a1d1d;
+	}
+	.estado-resolviendo {
+		background: #d1ecf1;
+		color: #0c5460;
+	}
+	.estado-resuelto {
+		background: #d4edda;
+		color: #155724;
+	}
+	.estado-cerrado {
+		background: #e2e3e5;
+		color: #383d41;
+	}
+
+	.prioridad-baja {
+		background: #d1ecf1;
+		color: #0c5460;
+	}
+	.prioridad-media {
+		background: #fff3cd;
+		color: #856404;
+	}
+	.prioridad-alta,
+	.prioridad-urgente {
+		background: #f8d7da;
+		color: #721c24;
+	}
+
+	.btn-pequeño {
+		padding: 0.5rem 1rem;
+		border-radius: 6px;
+		text-decoration: none;
+		font-size: 0.9rem;
+		transition: all 0.3s ease;
+		display: inline-block;
+		border: none;
+		cursor: pointer;
+		font-weight: 600;
+	}
+
+	.btn-ver {
+		background: #667eea;
+		color: white;
+	}
+
+	.btn-ver:hover {
+		background: #5568d3;
+		transform: translateY(-1px);
+	}
+
+	.sin-tickets {
+		background: white;
+		padding: 4rem 2rem;
+		border-radius: 8px;
+		text-align: center;
+		color: #999;
+		font-size: 1.1rem;
+	}
+
+	.info-dashboard {
+		margin-top: 3rem;
+		background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+		padding: 2rem;
+		border-radius: 8px;
+	}
+
+	.info-dashboard h3 {
+		color: #333;
+		margin-top: 0;
+	}
+
+	.pasos {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: 1.5rem;
+		margin-top: 1rem;
+	}
+
+	.paso {
+		background: white;
+		padding: 1.5rem;
+		border-radius: 8px;
+		display: flex;
+		gap: 1rem;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+	}
+
+	.paso .numero {
+		font-size: 2rem;
+		min-width: 60px;
+		text-align: center;
+	}
+
+	.paso strong {
+		display: block;
+		color: #667eea;
+		margin-bottom: 0.5rem;
+	}
+
+	.paso p {
+		margin: 0;
+		font-size: 0.9rem;
+		color: #666;
+	}
+
+	@media (max-width: 1200px) {
+		.tabla-encabezado,
+		.tabla-fila {
+			grid-template-columns: 60px 1fr 1.5fr 100px 100px 80px;
+		}
+	}
+
+	@media (max-width: 768px) {
+		.contenedor-principal {
+			flex-direction: column;
+		}
+
+		.sidebar {
+			width: 100%;
+			border-right: none;
+			border-bottom: 1px solid #ddd;
+			padding: 1rem;
+		}
+
+		.menu {
+			flex-direction: row;
+			flex-wrap: wrap;
+			margin-bottom: 1rem;
+		}
+
+		.menu-item {
+			flex: 1;
+			min-width: 120px;
+		}
+
+		.estadisticas {
+			margin-top: 1rem;
+		}
+
+		.tabla-encabezado,
+		.tabla-fila {
+			grid-template-columns: 1fr;
+		}
+
+		.contenido {
+			padding: 1rem;
+		}
+	}
+</style>

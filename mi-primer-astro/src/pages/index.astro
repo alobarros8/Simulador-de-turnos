@@ -1,0 +1,521 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { SITE_TITLE } from '../consts';
+import { obtenerSesion } from '../lib/sesion';
+
+const sesion = obtenerSesion(Astro.cookies);
+---
+
+<!doctype html>
+<html lang="es">
+	<head>
+		<BaseHead title={SITE_TITLE} description="Sistema de gestión de soporte técnico" />
+	</head>
+	<body>
+		<Header />
+
+		<main class="principal">
+			<!-- Hero -->
+			<section class="hero">
+				<div class="contenido-hero">
+					<h1>🛠️ Sistema de Soporte Técnico</h1>
+					<p>Gestiona tickets, resuelve problemas y atiende a tus clientes eficientemente</p>
+
+					<div class="botones-hero">
+						{sesion ? (
+							<>
+								<a href="/dashboard" class="btn-primario">
+									📊 Ver Dashboard
+								</a>
+								<a href="/mis-tickets" class="btn-secundario">
+									👤 Mis Tickets
+								</a>
+							</>
+						) : (
+							<>
+								<a href="/login" class="btn-primario">
+									🔐 Acceso del Equipo
+								</a>
+								<a href="/tickets/crear" class="btn-secundario">
+									🆘 Reportar Problema
+								</a>
+							</>
+						)}
+					</div>
+				</div>
+			</section>
+
+			<!-- Características para clientes -->
+			<section class="seccion">
+				<h2>Para Clientes</h2>
+				<p class="subtitulo">¿Tienes un problema técnico? Cuéntanos aquí</p>
+
+				<div class="grid-caracteristicas">
+					<div class="caracteristica">
+						<div class="icono">📝</div>
+						<h3>Reportar Problema</h3>
+						<p>
+							Completa un formulario con los detalles de tu issue y nosotros nos encargaremos del
+							resto
+						</p>
+						<a href="/tickets/crear" class="enlace">Ir al formulario →</a>
+					</div>
+
+					<div class="caracteristica">
+						<div class="icono">🔍</div>
+						<h3>Seguimiento</h3>
+						<p>
+							Mantente actualizado sobre el estado de tu ticket con notificaciones en tiempo real
+						</p>
+					</div>
+
+					<div class="caracteristica">
+						<div class="icono">💬</div>
+						<h3>Comunicación</h3>
+						<p>
+							Nos pondremos en contacto rápidamente si necesitamos más información del problema
+						</p>
+					</div>
+
+					<div class="caracteristica">
+						<div class="icono">✅</div>
+						<h3>Soluciones Rápidas</h3>
+						<p>
+							Nuestro equipo especializado busca soluciones similares para resolver rápidamente tu
+							problema
+						</p>
+					</div>
+				</div>
+			</section>
+
+			<!-- Características para equipo -->
+			<section class="seccion">
+				<h2>Para el Equipo de Soporte</h2>
+				<p class="subtitulo">Gestión integral de tickets y delegación</p>
+
+				<div class="grid-caracteristicas">
+					<div class="caracteristica">
+						<div class="icono">👁️</div>
+						<h3>Dashboard Centralizado</h3>
+						<p>
+							Ve todos los tickets en un solo lugar, filtrados por estado, prioridad y categoría
+						</p>
+					</div>
+
+					<div class="caracteristica">
+						<div class="icono">🔄</div>
+						<h3>Problemas Similares</h3>
+						<p>
+							El sistema detecta automáticamente problemas similares anteriores y sugiere soluciones
+						</p>
+					</div>
+
+					<div class="caracteristica">
+						<div class="icono">👥</div>
+						<h3>Delegación Eficiente</h3>
+						<p>
+							Asigna tickets a presupuestadores o técnicos según el tipo de problema
+						</p>
+					</div>
+
+					<div class="caracteristica">
+						<div class="icono">📊</div>
+						<h3>Reportes y Métricas</h3>
+						<p>
+							Visualiza estadísticas de tickets resueltos, tiempos de respuesta y más
+						</p>
+					</div>
+
+					<div class="caracteristica">
+						<div class="icono">💵</div>
+						<h3>Generación de Presupuestos</h3>
+						<p>Crea y gestiona presupuestos directamente desde cada ticket</p>
+					</div>
+
+					<div class="caracteristica">
+						<div class="icono">📝</div>
+						<h3>Notas y Seguimiento</h3>
+						<p>
+							Agrega notas internas o públicas para mantener todo documentado
+						</p>
+					</div>
+				</div>
+
+				{!sesion && (
+					<div class="acceso-equipo">
+						<h3>¿Eres parte del equipo?</h3>
+						<p>Accede al sistema con tus credenciales</p>
+						<a href="/login" class="btn-primario">
+							🔐 Iniciar Sesión
+						</a>
+					</div>
+				)}
+			</section>
+
+			<!-- Cómo funciona -->
+			<section class="seccion como-funciona">
+				<h2>📋 Cómo Funciona</h2>
+
+				<div class="pasos">
+					<div class="paso">
+						<div class="numero">1</div>
+						<h4>Cliente Reporta</h4>
+						<p>El cliente completa el formulario con su problema</p>
+					</div>
+
+					<div class="flecha">→</div>
+
+					<div class="paso">
+						<div class="numero">2</div>
+						<h4>Revisión</h4>
+						<p>El admin revisa y busca soluciones similares</p>
+					</div>
+
+					<div class="flecha">→</div>
+
+					<div class="paso">
+						<div class="numero">3</div>
+						<h4>Delegación</h4>
+						<p>Se delega a presupuestador o técnico</p>
+					</div>
+
+					<div class="flecha">→</div>
+
+					<div class="paso">
+						<div class="numero">4</div>
+						<h4>Resolución</h4>
+						<p>Se resuelve y cierra el ticket</p>
+					</div>
+				</div>
+			</section>
+
+			<!-- CTA Final -->
+			<section class="seccion cta-final">
+				<div class="contenido-cta">
+					<h2>¿Necesitas Ayuda Técnica?</h2>
+					<p>Reporta tu problema ahora y nuestro equipo se pondrá en contacto pronto</p>
+					<a href="/tickets/crear" class="btn-grande">
+						🆘 Reportar Problema Ahora
+					</a>
+				</div>
+			</section>
+		</main>
+
+		<Footer />
+	</body>
+</html>
+
+<style>
+	main {
+		flex: 1;
+	}
+
+	.principal {
+		display: flex;
+		flex-direction: column;
+	}
+
+	/* Hero */
+	.hero {
+		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		color: white;
+		padding: 6rem 2rem;
+		text-align: center;
+		clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+	}
+
+	.contenido-hero h1 {
+		font-size: 3rem;
+		margin: 0 0 1rem 0;
+		animation: slideDown 0.8s ease;
+	}
+
+	.contenido-hero p {
+		font-size: 1.3rem;
+		margin-bottom: 2rem;
+		opacity: 0.95;
+	}
+
+	@keyframes slideDown {
+		from {
+			opacity: 0;
+			transform: translateY(-20px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	.botones-hero {
+		display: flex;
+		gap: 1rem;
+		justify-content: center;
+		flex-wrap: wrap;
+	}
+
+	.btn-primario,
+	.btn-secundario,
+	.btn-grande {
+		padding: 1rem 2rem;
+		border-radius: 8px;
+		text-decoration: none;
+		font-weight: 600;
+		transition: all 0.3s ease;
+		display: inline-block;
+		cursor: pointer;
+		border: none;
+		font-size: 1.1rem;
+	}
+
+	.btn-primario {
+		background: white;
+		color: #667eea;
+		box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+	}
+
+	.btn-primario:hover {
+		transform: translateY(-3px);
+		box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+	}
+
+	.btn-secundario {
+		background: rgba(255, 255, 255, 0.2);
+		color: white;
+		border: 2px solid white;
+	}
+
+	.btn-secundario:hover {
+		background: rgba(255, 255, 255, 0.3);
+		transform: translateY(-3px);
+	}
+
+	/* Secciones */
+	.seccion {
+		padding: 4rem 2rem;
+		max-width: 1200px;
+		margin: 0 auto;
+	}
+
+	.seccion h2 {
+		text-align: center;
+		font-size: 2.5rem;
+		color: #333;
+		margin-bottom: 0.5rem;
+	}
+
+	.subtitulo {
+		text-align: center;
+		color: #666;
+		font-size: 1.1rem;
+		margin-bottom: 3rem;
+	}
+
+	.grid-caracteristicas {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+		gap: 2rem;
+		margin-bottom: 2rem;
+	}
+
+	.caracteristica {
+		background: white;
+		padding: 2rem;
+		border-radius: 8px;
+		border: 1px solid #ddd;
+		text-align: center;
+		transition: all 0.3s ease;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+	}
+
+	.caracteristica:hover {
+		box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
+		transform: translateY(-8px);
+		border-color: #667eea;
+	}
+
+	.caracteristica .icono {
+		font-size: 3rem;
+		margin-bottom: 1rem;
+	}
+
+	.caracteristica h3 {
+		color: #333;
+		margin: 0 0 0.8rem 0;
+	}
+
+	.caracteristica p {
+		color: #666;
+		margin: 0 0 1rem 0;
+		line-height: 1.6;
+	}
+
+	.enlace {
+		color: #667eea;
+		text-decoration: none;
+		font-weight: 600;
+		transition: all 0.3s ease;
+	}
+
+	.enlace:hover {
+		color: #764ba2;
+		text-decoration: underline;
+	}
+
+	.acceso-equipo {
+		background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+		padding: 3rem 2rem;
+		border-radius: 12px;
+		text-align: center;
+		margin-top: 3rem;
+	}
+
+	.acceso-equipo h3 {
+		color: #333;
+		margin-bottom: 0.5rem;
+	}
+
+	.acceso-equipo p {
+		color: #666;
+		margin-bottom: 1.5rem;
+	}
+
+	/* Cómo funciona */
+	.como-funciona {
+		background: #f8f9fa;
+	}
+
+	.pasos {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 2rem;
+		margin-top: 2rem;
+	}
+
+	.paso {
+		background: white;
+		padding: 2rem;
+		border-radius: 8px;
+		text-align: center;
+		flex: 0 1 auto;
+		min-width: 180px;
+		border: 2px solid #ddd;
+		transition: all 0.3s ease;
+	}
+
+	.paso:hover {
+		border-color: #667eea;
+		box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+	}
+
+	.numero {
+		width: 50px;
+		height: 50px;
+		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		color: white;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 1.5rem;
+		font-weight: bold;
+		margin: 0 auto 1rem;
+	}
+
+	.paso h4 {
+		color: #333;
+		margin: 0 0 0.5rem 0;
+	}
+
+	.paso p {
+		color: #666;
+		margin: 0;
+		font-size: 0.9rem;
+	}
+
+	.flecha {
+		color: #667eea;
+		font-size: 2rem;
+		font-weight: bold;
+		flex-shrink: 0;
+	}
+
+	/* CTA Final */
+	.cta-final {
+		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		color: white;
+		text-align: center;
+	}
+
+	.contenido-cta h2 {
+		color: white;
+		margin-bottom: 1rem;
+	}
+
+	.contenido-cta p {
+		color: rgba(255, 255, 255, 0.95);
+		font-size: 1.2rem;
+		margin-bottom: 2rem;
+	}
+
+	.btn-grande {
+		background: white;
+		color: #667eea;
+		padding: 1.2rem 2.5rem;
+		font-size: 1.2rem;
+		box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+	}
+
+	.btn-grande:hover {
+		transform: translateY(-3px);
+		box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+	}
+
+	@media (max-width: 768px) {
+		.hero {
+			padding: 3rem 1rem;
+			clip-path: polygon(0 0, 100% 0, 100% 90%, 0 100%);
+		}
+
+		.contenido-hero h1 {
+			font-size: 2rem;
+		}
+
+		.contenido-hero p {
+			font-size: 1.1rem;
+		}
+
+		.seccion {
+			padding: 2rem 1rem;
+		}
+
+		.seccion h2 {
+			font-size: 1.8rem;
+		}
+
+		.botones-hero {
+			flex-direction: column;
+			width: 100%;
+		}
+
+		.botones-hero a {
+			width: 100%;
+		}
+
+		.pasos {
+			flex-direction: column;
+		}
+
+		.flecha {
+			transform: rotate(90deg);
+		}
+
+		.grid-caracteristicas {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

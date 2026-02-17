@@ -1,0 +1,374 @@
+---
+// ===========================================
+// COMPONENTE FORMULARIO
+// ===========================================
+// Este es un formulario HTML puro sin JavaScript
+// Los datos se envían con POST al mismo archivo o a una API
+
+interface Props {
+	titulo?: string;
+	metodo?: 'GET' | 'POST';
+	accion?: string;
+}
+
+const { 
+	titulo = 'Formulario de Contacto',
+	metodo = 'POST',
+	accion = '#'
+} = Astro.props;
+---
+
+<form class="formulario" method={metodo} action={accion}>
+	<h2>{titulo}</h2>
+
+	<!-- Campo de nombre -->
+	<div class="grupo">
+		<label for="nombre">
+			👤 Nombre completo
+			<span class="requerido">*</span>
+		</label>
+		<input
+			type="text"
+			id="nombre"
+			name="nombre"
+			placeholder="Juan Pérez"
+			required
+			aria-describedby="nombre-help"
+		/>
+		<small id="nombre-help">Mínimo 3 caracteres</small>
+	</div>
+
+	<!-- Campo de email -->
+	<div class="grupo">
+		<label for="email">
+			📧 Correo electrónico
+			<span class="requerido">*</span>
+		</label>
+		<input
+			type="email"
+			id="email"
+			name="email"
+			placeholder="tu@email.com"
+			required
+			aria-describedby="email-help"
+		/>
+		<small id="email-help">Debe ser un email válido</small>
+	</div>
+
+	<!-- Campo de teléfono -->
+	<div class="grupo">
+		<label for="telefono">
+			📱 Teléfono
+			<span class="opcional">(opcional)</span>
+		</label>
+		<input
+			type="tel"
+			id="telefono"
+			name="telefono"
+			placeholder="+34 666 777 888"
+			pattern="[0-9+\-\s]+"
+			aria-describedby="telefono-help"
+		/>
+		<small id="telefono-help">Formato: +34 666 777 888</small>
+	</div>
+
+	<!-- Campo de asunto -->
+	<div class="grupo">
+		<label for="asunto">
+			💬 Asunto
+			<span class="requerido">*</span>
+		</label>
+		<select id="asunto" name="asunto" required>
+			<option value="">-- Selecciona un asunto --</option>
+			<option value="consulta">Consulta general</option>
+			<option value="soporte">Soporte técnico</option>
+			<option value="ventas">Información de ventas</option>
+			<option value="otro">Otro</option>
+		</select>
+	</div>
+
+	<!-- Campo de mensaje -->
+	<div class="grupo">
+		<label for="mensaje">
+			📝 Mensaje
+			<span class="requerido">*</span>
+		</label>
+		<textarea
+			id="mensaje"
+			name="mensaje"
+			placeholder="Escribe tu mensaje aquí..."
+			rows="6"
+			minlength="10"
+			maxlength="500"
+			required
+			aria-describedby="mensaje-help"
+		></textarea>
+		<small id="mensaje-help">Entre 10 y 500 caracteres</small>
+	</div>
+
+	<!-- Checkbox de términos -->
+	<div class="grupo checkbox">
+		<input
+			type="checkbox"
+			id="terminos"
+			name="terminos"
+			required
+		/>
+		<label for="terminos" class="checkbox-label">
+			Acepto los <a href="#">términos y condiciones</a>
+			<span class="requerido">*</span>
+		</label>
+	</div>
+
+	<!-- Checkbox de newsletter (opcional) -->
+	<div class="grupo checkbox">
+		<input
+			type="checkbox"
+			id="newsletter"
+			name="newsletter"
+		/>
+		<label for="newsletter" class="checkbox-label">
+			Deseo recibir información sobre promociones
+		</label>
+	</div>
+
+	<!-- Radio buttons de preferencia -->
+	<div class="grupo">
+		<label>Preferencia de contacto <span class="requerido">*</span></label>
+		<div class="radio-group">
+			<div>
+				<input type="radio" id="email-pref" name="preferencia" value="email" checked />
+				<label for="email-pref">📧 Por email</label>
+			</div>
+			<div>
+				<input type="radio" id="telefono-pref" name="preferencia" value="telefono" />
+				<label for="telefono-pref">📱 Por teléfono</label>
+			</div>
+			<div>
+				<input type="radio" id="ambos-pref" name="preferencia" value="ambos" />
+				<label for="ambos-pref">🔄 Ambos</label>
+			</div>
+		</div>
+	</div>
+
+	<!-- Botones -->
+	<div class="grupo botones">
+		<button type="submit" class="btn btn-primario">
+			✉️ Enviar formulario
+		</button>
+		<button type="reset" class="btn btn-secundario">
+			🔄 Limpiar
+		</button>
+	</div>
+
+	<!-- Nota informativa -->
+	<p class="nota">
+		<strong>ℹ️ Nota:</strong> Este es un formulario de demostración. Los datos no se guardan realmente.
+	</p>
+</form>
+
+<style>
+	.formulario {
+		max-width: 600px;
+		margin: 0 auto;
+		padding: 2rem;
+		background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+		border-radius: 12px;
+		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+	}
+
+	.formulario h2 {
+		color: #333;
+		margin-bottom: 1.5rem;
+		font-size: 1.8rem;
+		text-align: center;
+	}
+
+	.grupo {
+		margin-bottom: 1.5rem;
+		display: flex;
+		flex-direction: column;
+	}
+
+	label {
+		font-weight: 600;
+		color: #333;
+		margin-bottom: 0.5rem;
+		display: flex;
+		align-items: center;
+		gap: 0.3rem;
+	}
+
+	.requerido {
+		color: #e74c3c;
+		font-weight: bold;
+	}
+
+	.opcional {
+		color: #7f8c8d;
+		font-size: 0.85rem;
+		font-weight: normal;
+	}
+
+	input[type="text"],
+	input[type="email"],
+	input[type="tel"],
+	select,
+	textarea {
+		padding: 0.75rem;
+		border: 2px solid #bdc3c7;
+		border-radius: 6px;
+		font-size: 1rem;
+		font-family: inherit;
+		transition: all 0.3s ease;
+		background-color: white;
+	}
+
+	input[type="text"]:focus,
+	input[type="email"]:focus,
+	input[type="tel"]:focus,
+	select:focus,
+	textarea:focus {
+		outline: none;
+		border-color: #3498db;
+		box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+		background-color: #f8fbff;
+	}
+
+	input[type="text"]:invalid:not(:placeholder-shown),
+	input[type="email"]:invalid:not(:placeholder-shown),
+	input[type="tel"]:invalid:not(:placeholder-shown),
+	textarea:invalid:not(:placeholder-shown) {
+		border-color: #e74c3c;
+		background-color: #fadbd8;
+	}
+
+	textarea {
+		resize: vertical;
+		min-height: 120px;
+	}
+
+	small {
+		font-size: 0.85rem;
+		color: #7f8c8d;
+		margin-top: 0.3rem;
+	}
+
+	.checkbox {
+		flex-direction: row;
+		align-items: flex-start;
+		gap: 0.8rem;
+	}
+
+	input[type="checkbox"],
+	input[type="radio"] {
+		margin-top: 0.3rem;
+		cursor: pointer;
+		accent-color: #3498db;
+		width: 18px;
+		height: 18px;
+	}
+
+	.checkbox-label {
+		margin: 0;
+		font-weight: normal;
+		cursor: pointer;
+	}
+
+	.checkbox-label a {
+		color: #3498db;
+		text-decoration: none;
+		border-bottom: 1px dotted #3498db;
+	}
+
+	.checkbox-label a:hover {
+		color: #2980b9;
+	}
+
+	.radio-group {
+		display: flex;
+		flex-direction: column;
+		gap: 0.8rem;
+		margin-top: 0.5rem;
+	}
+
+	.radio-group div {
+		display: flex;
+		align-items: center;
+		gap: 0.8rem;
+	}
+
+	.radio-group label {
+		margin: 0;
+		font-weight: normal;
+		cursor: pointer;
+	}
+
+	.botones {
+		display: flex;
+		gap: 1rem;
+		margin-top: 2rem;
+	}
+
+	.btn {
+		padding: 0.8rem 1.5rem;
+		border: none;
+		border-radius: 6px;
+		font-size: 1rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 0.3s ease;
+		flex: 1;
+	}
+
+	.btn-primario {
+		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		color: white;
+		box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+	}
+
+	.btn-primario:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+	}
+
+	.btn-primario:active {
+		transform: translateY(0);
+	}
+
+	.btn-secundario {
+		background-color: #95a5a6;
+		color: white;
+		box-shadow: 0 4px 15px rgba(149, 165, 166, 0.3);
+	}
+
+	.btn-secundario:hover {
+		background-color: #7f8c8d;
+		transform: translateY(-2px);
+	}
+
+	.nota {
+		margin-top: 1.5rem;
+		padding: 1rem;
+		background-color: #fff3cd;
+		border-left: 4px solid #ffc107;
+		color: #856404;
+		border-radius: 4px;
+		font-size: 0.9rem;
+	}
+
+	/* Responsive */
+	@media (max-width: 600px) {
+		.formulario {
+			padding: 1.5rem;
+		}
+
+		.botones {
+			flex-direction: column;
+		}
+
+		.radio-group {
+			flex-direction: column;
+		}
+	}
+</style>

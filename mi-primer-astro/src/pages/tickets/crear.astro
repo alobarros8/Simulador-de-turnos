@@ -1,0 +1,612 @@
+---
+// ============================================
+// PÁGINA: NUEVO TICKET (FORMULARIO CLIENTE)
+// ============================================
+// Donde los clientes reportan sus problemas
+
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import Header from '../../components/Header.astro';
+import { SITE_TITLE } from '../../consts';
+import { bd } from '../../lib/bd';
+
+export const prerender = false;
+
+const titulo = 'Reportar Problema';
+const descripcion = 'Cuéntanos qué problema tienes';
+
+let exito = false;
+let nuevoTicketId = '';
+let error = '';
+
+// Procesar el formulario
+if (Astro.request.method === 'POST') {
+	try {
+		const datos = await Astro.request.formData();
+
+		// Obtener datos del cliente
+		const nombre = datos.get('nombre')?.toString() || '';
+		const email = datos.get('email')?.toString() || '';
+		const telefono = datos.get('telefono')?.toString() || '';
+		const empresa = datos.get('empresa')?.toString() || '';
+		const categoria = datos.get('categoria')?.toString() || 'otro';
+		const titulo = datos.get('titulo')?.toString() || '';
+		const descripcion = datos.get('descripcion')?.toString() || '';
+		const prioridad = datos.get('prioridad')?.toString() || 'media';
+
+		// Validar campos
+		if (!nombre || !email || !titulo || !descripcion) {
+			error = '❌ Por favor llena todos los campos requeridos';
+		} else {
+			// Crear o encontrar cliente
+			let cliente = bd.obtenerUsuarioPorEmail(email);
+			let clienteId = '';
+
+			if (!cliente) {
+				// Crear nuevo cliente
+				const nuevoCliente = bd.crearCliente({
+					nombre,
+					email,
+					telefono,
+					empresa,
+				});
+				clienteId = nuevoCliente.id;
+			} else {
+				clienteId = cliente.id;
+			}
+
+			// Crear ticket
+			const ticket = bd.agregarTicket({
+				clienteId,
+				titulo,
+				descripcion,
+				categoria: categoria as any,
+				prioridad: prioridad as any,
+			});
+
+			exito = true;
+			nuevoTicketId = ticket.id;
+		}
+	} catch (err) {
+		error = '❌ Error al crear el ticket';
+		console.error(err);
+	}
+}
+---
+
+<!doctype html>
+<html lang="es">
+	<head>
+		<BaseHead title={`${titulo} | ${SITE_TITLE}`} description={descripcion} />
+	</head>
+	<body>
+		<Header />
+
+		<main class="contenedor">
+			{exito ? (
+				<div class="seccion-exito">
+					<div class="caja-exito">
+						<div class="icono-exito">✅</div>
+						<h1>¡Ticket creado exitosamente!</h1>
+						<p>Hemos recibido tu reporte de problema.</p>
+
+						<div class="detalles-exito">
+							<div class="detalle">
+								<strong>ID del Ticket:</strong>
+								<code>{nuevoTicketId}</code>
+							</div>
+							<p class="informacion">
+								Nuestro equipo revisará tu problema y se pondrá en contacto contigo pronto. Conserva el
+								ID del ticket para referencias futuras.
+							</p>
+						</div>
+
+						<div class="siguientes-pasos">
+							<h3>📋 Siguientes Pasos:</h3>
+							<ol>
+								<li>📧 Revisar el problema</li>
+								<li>🔍 Buscar soluciones similares</li>
+								<li>💬 Contactarte si necesitamos más información</li>
+								<li>💵 Proporcionarte un presupuesto</li>
+								<li>🔧 Resolver el problema</li>
+							</ol>
+						</div>
+
+						<a href="/" class="btn-primario">
+							← Volver al inicio
+						</a>
+					</div>
+				</div>
+			) : (
+				<>
+					<section class="encabezado">
+						<h1>🆘 {titulo}</h1>
+						<p>{descripcion}</p>
+					</section>
+
+					{error && (
+						<div class="alerta-error">
+							{error}
+						</div>
+					)}
+
+					<section>
+						<form method="POST" class="formulario-ticket">
+							<fieldset>
+								<legend>👤 Tus Datos</legend>
+
+								<div class="grupo">
+									<label for="nombre">Nombre Completo <span class="requerido">*</span></label>
+									<input
+										type="text"
+										id="nombre"
+										name="nombre"
+										placeholder="Juan García Pérez"
+										required
+										minlength="3"
+									/>
+								</div>
+
+								<div class="grupo">
+									<label for="email">Correo Electrónico <span class="requerido">*</span></label>
+									<input
+										type="email"
+										id="email"
+										name="email"
+										placeholder="tu@empresa.com"
+										required
+									/>
+								</div>
+
+								<div class="grupos-2">
+									<div class="grupo">
+										<label for="telefono">Teléfono</label>
+										<input
+											type="tel"
+											id="telefono"
+											name="telefono"
+											placeholder="+34 666 777 888"
+										/>
+									</div>
+
+									<div class="grupo">
+										<label for="empresa">Empresa</label>
+										<input
+											type="text"
+											id="empresa"
+											name="empresa"
+											placeholder="Nombre de tu empresa"
+										/>
+									</div>
+								</div>
+							</fieldset>
+
+							<fieldset>
+								<legend>🔧 Detalles del Problema</legend>
+
+								<div class="grupos-2">
+									<div class="grupo">
+										<label for="categoria">Categoría <span class="requerido">*</span></label>
+										<select id="categoria" name="categoria" required>
+											<option value="">-- Selecciona una categoría --</option>
+											<option value="virus">🦠 Virus o Malware</option>
+											<option value="rendimiento">⚡ Rendimiento lento</option>
+											<option value="conexion">📡 Problemas de conexión</option>
+											<option value="hardware">🖥️ Problema de hardware</option>
+											<option value="software">💻 Problema de software</option>
+											<option value="otro">❓ Otro</option>
+										</select>
+									</div>
+
+									<div class="grupo">
+										<label for="prioridad">Prioridad <span class="requerido">*</span></label>
+										<select id="prioridad" name="prioridad" required>
+											<option value="baja">🟢 Baja (No es urgente)</option>
+											<option value="media" selected>🟡 Media (Normal)</option>
+											<option value="alta">🔴 Alta (Impacta el trabajo)</option>
+											<option value="urgente">🔴⚡ Urgente (Crítico)</option>
+										</select>
+									</div>
+								</div>
+
+								<div class="grupo">
+									<label for="titulo">Título del Problema <span class="requerido">*</span></label>
+									<input
+										type="text"
+										id="titulo"
+										name="titulo"
+										placeholder="Ejemplo: La computadora va muy lenta"
+										required
+										minlength="5"
+										maxlength="100"
+									/>
+									<small>Breve descripción (5-100 caracteres)</small>
+								</div>
+
+								<div class="grupo">
+									<label for="descripcion">Descripción Detallada <span class="requerido">*</span></label>
+									<textarea
+										id="descripcion"
+										name="descripcion"
+										placeholder="Cuéntanos con detalle qué está pasando..."
+										required
+										minlength="20"
+										maxlength="2000"
+										rows="8"
+									></textarea>
+									<small>Por favor sé lo más específico posible (mín. 20 caracteres)</small>
+								</div>
+							</fieldset>
+
+							<div class="botones">
+								<button type="submit" class="btn-primario">
+									📤 Enviar Reporte
+								</button>
+								<button type="reset" class="btn-secundario">
+									🔄 Limpiar formulario
+								</button>
+							</div>
+						</form>
+					</section>
+
+					<section class="info-usuario">
+						<h3>💡 Tips para reportar un problema</h3>
+						<ul>
+							<li>✅ <strong>Sé específico:</strong> Describe exactamente qué no funciona</li>
+							<li>✅ <strong>Incluye pasos:</strong> Cuéntanos qué hacías cuando ocurrió</li>
+							<li>✅ <strong>Mensajes de error:</strong> Si ves un error, cópialo aquí</li>
+							<li>✅ <strong>Frecuencia:</strong> ¿Pasa siempre o a veces?</li>
+							<li>✅ <strong>Verifica urgencia:</strong> Selecciona la prioridad correcta</li>
+						</ul>
+					</section>
+				</>
+			)}
+		</main>
+
+		<Footer />
+	</body>
+</html>
+
+<style>
+	.contenedor {
+		max-width: 800px;
+		margin: 0 auto;
+		padding: 2rem;
+	}
+
+	.encabezado {
+		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		color: white;
+		padding: 3rem 2rem;
+		border-radius: 12px;
+		text-align: center;
+		margin-bottom: 2rem;
+	}
+
+	.encabezado h1 {
+		margin: 0 0 0.5rem 0;
+		font-size: 2.5rem;
+	}
+
+	.encabezado p {
+		margin: 0;
+		opacity: 0.9;
+		font-size: 1.1rem;
+	}
+
+	.alerta-error {
+		background: #f8d7da;
+		border: 2px solid #f5c6cb;
+		border-left: 4px solid #dc3545;
+		color: #721c24;
+		padding: 1rem;
+		border-radius: 6px;
+		margin-bottom: 1.5rem;
+		animation: slideDown 0.3s ease;
+	}
+
+	@keyframes slideDown {
+		from {
+			opacity: 0;
+			transform: translateY(-10px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	.seccion-exito {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 60vh;
+	}
+
+	.caja-exito {
+		background: white;
+		border-radius: 12px;
+		padding: 3rem 2rem;
+		text-align: center;
+		box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+		max-width: 500px;
+	}
+
+	.icono-exito {
+		font-size: 4rem;
+		margin-bottom: 1rem;
+		animation: bounce 0.6s ease;
+	}
+
+	@keyframes bounce {
+		0%, 100% {
+			transform: scale(1);
+		}
+		50% {
+			transform: scale(1.2);
+		}
+	}
+
+	.caja-exito h1 {
+		color: #28a745;
+		margin: 0 0 0.5rem 0;
+	}
+
+	.caja-exito > p {
+		color: #666;
+		margin-bottom: 2rem;
+	}
+
+	.detalles-exito {
+		background: #d4edda;
+		border: 2px solid #c3e6cb;
+		border-radius: 8px;
+		padding: 1.5rem;
+		margin-bottom: 2rem;
+		text-align: left;
+	}
+
+	.detalle {
+		margin-bottom: 1rem;
+	}
+
+	.detalle strong {
+		display: block;
+		color: #155724;
+		margin-bottom: 0.3rem;
+	}
+
+	.detalle code {
+		background: white;
+		padding: 0.5rem 1rem;
+		border-radius: 6px;
+		display: block;
+		font-weight: bold;
+		color: #667eea;
+		letter-spacing: 1px;
+	}
+
+	.informacion {
+		color: #155724;
+		margin: 0;
+		font-size: 0.95rem;
+		line-height: 1.6;
+	}
+
+	.siguientes-pasos {
+		background: #f0f7ff;
+		border-left: 4px solid #667eea;
+		padding: 1.5rem;
+		border-radius: 6px;
+		text-align: left;
+		margin-bottom: 2rem;
+	}
+
+	.siguientes-pasos h3 {
+		margin: 0 0 1rem 0;
+		color: #667eea;
+	}
+
+	.siguientes-pasos ol {
+		margin: 0;
+		padding-left: 1.5rem;
+	}
+
+	.siguientes-pasos li {
+		margin-bottom: 0.5rem;
+		color: #333;
+	}
+
+	.formulario-ticket {
+		background: white;
+		padding: 2rem;
+		border-radius: 12px;
+		border: 1px solid #ddd;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+		margin-bottom: 2rem;
+	}
+
+	fieldset {
+		border: none;
+		padding: 0 0 2rem 0;
+		margin: 0;
+		border-bottom: 2px solid #eee;
+	}
+
+	fieldset:last-of-type {
+		border-bottom: none;
+		padding-bottom: 0;
+	}
+
+	legend {
+		padding-bottom: 1rem;
+		font-size: 1.3rem;
+		font-weight: 600;
+		color: #333;
+		margin-bottom: 1rem;
+		border-bottom: 2px solid #667eea;
+	}
+
+	.grupo {
+		margin-bottom: 1.5rem;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.grupos-2 {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1.5rem;
+		margin-bottom: 1.5rem;
+	}
+
+	label {
+		font-weight: 600;
+		color: #333;
+		margin-bottom: 0.5rem;
+	}
+
+	.requerido {
+		color: #e74c3c;
+		font-weight: bold;
+	}
+
+	input[type="text"],
+	input[type="email"],
+	input[type="tel"],
+	select,
+	textarea {
+		padding: 0.8rem;
+		border: 2px solid #ddd;
+		border-radius: 6px;
+		font-size: 1rem;
+		font-family: inherit;
+		transition: all 0.3s ease;
+		background-color: white;
+	}
+
+	input[type="text"]:focus,
+	input[type="email"]:focus,
+	input[type="tel"]:focus,
+	select:focus,
+	textarea:focus {
+		outline: none;
+		border-color: #667eea;
+		box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+		background-color: #f8fbff;
+	}
+
+	input[type="text"]:invalid:not(:placeholder-shown),
+	input[type="email"]:invalid:not(:placeholder-shown),
+	textarea:invalid:not(:placeholder-shown) {
+		border-color: #e74c3c;
+		background-color: #fadbd8;
+	}
+
+	textarea {
+		resize: vertical;
+		min-height: 150px;
+	}
+
+	small {
+		font-size: 0.85rem;
+		color: #7f8c8d;
+		margin-top: 0.3rem;
+	}
+
+	.botones {
+		display: flex;
+		gap: 1rem;
+		margin-top: 2rem;
+	}
+
+	.btn-primario,
+	.btn-secundario {
+		padding: 1rem;
+		border: none;
+		border-radius: 6px;
+		font-size: 1.1rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 0.3s ease;
+		flex: 1;
+	}
+
+	.btn-primario {
+		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		color: white;
+		box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+	}
+
+	.btn-primario:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+	}
+
+	.btn-primario:active {
+		transform: translateY(0);
+	}
+
+	.btn-secundario {
+		background-color: #95a5a6;
+		color: white;
+	}
+
+	.btn-secundario:hover {
+		background-color: #7f8c8d;
+		transform: translateY(-2px);
+	}
+
+	.info-usuario {
+		background: #fffacd;
+		border: 2px solid #ffc107;
+		border-radius: 8px;
+		padding: 1.5rem;
+	}
+
+	.info-usuario h3 {
+		margin-top: 0;
+		color: #856404;
+	}
+
+	.info-usuario ul {
+		margin: 0;
+		padding-left: 1.5rem;
+		color: #856404;
+	}
+
+	.info-usuario li {
+		margin-bottom: 0.8rem;
+		line-height: 1.6;
+	}
+
+	@media (max-width: 600px) {
+		.contenedor {
+			padding: 1rem;
+		}
+
+		.encabezado {
+			padding: 2rem 1rem;
+		}
+
+		.encabezado h1 {
+			font-size: 1.8rem;
+		}
+
+		.grupos-2 {
+			grid-template-columns: 1fr;
+		}
+
+		.botones {
+			flex-direction: column;
+		}
+
+		.formulario-ticket {
+			padding: 1.5rem;
+		}
+
+		.caja-exito {
+			padding: 1.5rem;
+		}
+	}
+</style>
